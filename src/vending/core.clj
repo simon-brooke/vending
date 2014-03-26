@@ -5,7 +5,7 @@
 (defn make-default-machine [] { :stock {:caramel-wafer 5 :teacake 5 :snowball 5}
 	:coins {:merk 1 :plack 4 :bawbee 4 :bodle 4}
 	:tendered nil
-	:last-message ""
+	:message ""
 	:change nil
 	:output nil} )
 
@@ -24,13 +24,18 @@
   "Sum the value of these coins."
 	(apply + (map coin-value coins)))
 
+
+(defn message-machine [machine message]
+  "Return a machine with this message"
+  (assoc (dissoc machine :message) :message (.toString message)))
+
 (defn coin-return [machine]
   "Return all tendered coins in this machine."
-	(assoc (dissoc machine :tendered) :change (:tendered machine)))
+	(message-machine (assoc (dissoc machine :tendered) :change (:tendered machine)) "Coins returned"))
 
 (defn add-coin [machine coin]
   "Add this coin to this machine."
-	(assoc (dissoc machine :tendered) :tendered (cons coin (:tendered machine))))
+	(message-machine (assoc (dissoc machine :tendered) :tendered (cons coin (:tendered machine))) (str "Added a " coin)))
 
 (defn add-coins [machine coins]
   "Add these coins to this machine"
@@ -79,7 +84,6 @@
   "Given this amount of change to make, and this number each of merks, placks, bawbees
   and bodles, return a tuple (merk plack bodle bawbee) which indicates the number remaining
 	after making change, or nil if not possible"
-  (print (list "in-make-change:" amount merk plack bawbee bodle))
 	(cond
 		(= amount 0) (list merk plack bawbee bodle)
 		(and (>= amount (:merk coin-values)) (> merk 0))
@@ -130,17 +134,17 @@
 
 
 (defn get-item [machine item]
-  (print "get-item: Started")
 	(let [item-price (item item-prices)
 		tend (sum-coins (:tendered machine))
 		change (make-change item-price (:merk tend) (:plack tend) (:bawbee tend) (:bodle tend))]
-    (print (list "get-item:" item-price tend change))
-	(cond (<= 0 (item (:stock machine))) (coin-return machine)
-		(<= (coins-value (:tendered machine)) item-price) (coin-return machine)
-		(empty? change) (coin-return)
-		true (deliver-item machine item change))))
+	(cond (>= 0 (item (:stock machine))) (message-machine (coin-return machine) (str "Sorry, " item " not in stock"))
+		(<= (coins-value (:tendered machine)) item-price) (message-machine machine "Please insert more money")
+		(empty? change) (message-machine (coin-return machine) "Sorry, I don't have enough change.")
+		true (message-machine (deliver-item machine item change) (str "Enjoy your " item)))))
 
 (defn get-caramel-wafer [machine]
 	(get-item machine :caramel-wafer))
+
+;; (get-caramel-wafer (add-coin (add-coin (make-default-machine) :merk) :merk))
 
 

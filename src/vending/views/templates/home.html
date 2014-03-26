@@ -11,4 +11,43 @@
     {{content|safe}}
     </div>
   </div>
+<div class="content">
+    <h2>OK, the Vending machine plan</h2>
+    <p>What this project is about is the
+        <a href="http://code.joejag.com/coding-dojo-vending-machine/">Vending Machine code kata</a>.
+        Just at this point, I've added the whole of a <a href="http://www.luminusweb.net/">luminusweb</a>
+        default template to it, but I haven't done much with it. In due course this page will be replaced
+        with a graphical representation of a <a href="http://en.wikipedia.org/wiki/W._Heath_Robinson">heath-robinson</a>
+        vending machine, with buttons allowing coins to be inserted, and items to be selected.<p>
+    <p>I intend that the page should be interactive, with the vending machine responding graphically to
+        what the user does on the buttons. The logic will almost certainly be server-side at first,
+        but possibly later I'll move it client-side using ClojureScript.</p>
+    <p>At this stage in the project this page uses the <a href="https://github.com/yogthos/Selmer">Selmer</a>
+        templating system; later I intend that it should use <a href="https://github.com/cgrand/enlive">Enlive</a>.</p>
+    <table class="machine">
+        <tr>
+            <td colspan="8" id="tendered-coins">Tendered coins</td>
+        </tr>
+        <tr>
+            <td id="teacake" class="items">Teacakes</td>
+            <td id="caramel-wafer" class="items">Caramel wafers</td>
+            <td id="snowballs" class="items">Snowballs</td>
+            <td id="merk" class="coins">Merks</td>
+            <td id="plack" class="coins">Placks</td>
+            <td id="bawbee" class="coins">Bawbees</td>
+            <td id="bodle" class="coins">Bodles</td>
+            <td id="change-chute"></td>
+        </tr>
+        <tr>
+            <td colspan="3" id="output" class="hoppers">Output</td>
+            <td colspan="5" id="change" class="hoppers">Change</td>
+        </tr>
+        <tr>
+            {% for button in buttons %}
+            <td class="button" id="{{ button }}-cell">
+                <submit name="action" value="{{ button }}" id="{{ button }}-button"/>
+            </td>
+            {% endfor %}
+        </tr>
+    </table>
 {% endblock %}

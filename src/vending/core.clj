@@ -2,7 +2,7 @@
 
 
 
-(defn make-default-machine [] { :stock {:apples 5 :oranges 5 :lemons 5}
+(defn make-default-machine [] { :stock {:caramel-wafer 5 :teacake 5 :snowball 5}
 	:coins {:merk 1 :plack 4 :bawbee 4 :bodle 4}
 	:tendered nil
 	:last-message ""
@@ -15,7 +15,7 @@
 
 (.indexOf (keys coin-values) :bodle)
 
-(def item-prices {:apples 0.65 :oranges 1 :lemons 1.5})
+(def item-prices {:caramel-wafer 0.65 :teacake 1 :snowball 1.5})
 
 (defn coin-value [coin]
 	(coin-values coin))
@@ -140,7 +140,7 @@
 		(empty? change) (coin-return)
 		true (deliver-item machine item change))))
 
-(defn get-apple [machine]
-	(get-item machine :apples))
+(defn get-caramel-wafer [machine]
+	(get-item machine :caramel-wafer))
 
 

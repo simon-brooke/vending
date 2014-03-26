@@ -76,8 +76,10 @@
 	(subtract-denomination list 4))
 
 (defn in-make-change [amount merk plack bawbee bodle]
-	"Return a tuple (merk plack bodle bawbee) which indicates the number remaining
+  "Given this amount of change to make, and this number each of merks, placks, bawbees
+  and bodles, return a tuple (merk plack bodle bawbee) which indicates the number remaining
 	after making change, or nil if not possible"
+  (print (list "in-make-change:" amount merk plack bawbee bodle))
 	(cond
 		(= amount 0) (list merk plack bawbee bodle)
 		(and (>= amount (:merk coin-values)) (> merk 0))
@@ -90,21 +92,32 @@
 			(in-make-change (- amount (:bodle coin-values)) merk plack bawbee (- bodle 1))))
 
 (defn make-change [amount merk plack bawbee bodle]
-	(map #(- %1 %2) (list merk plack bawbee bodle)
-		(in-make-change amount merk plack bawbee bodle)
+  "Given this amount of change to make, and this number each of merks, placks, bawbees
+  and bodles, return a tuple (merk plack bodle bawbee) which indicates the number remaining
+	after making change, or nil if not possible"
+	(map #(- %1 %2) (map #(or % 0) (list merk plack bawbee bodle))
+		(apply in-make-change (map #(or % 0) (list amount merk plack bawbee bodle)))
 		))
 
-(defn subtract-change [machine change]
-  "subtract this change from this machine")
+(defn subtract-change [machine item-price change]
+  "subtract this change from this machine and return the machine"
+  (let [coins (:coins machine)
+        merk (:merk coins)
+        plack (:plack coins)
+        bawbee (:bawbee coins)
+        bodle (:bodle coins)
+        chance (make-change item-price merk plack bawbee bodle)])
+  (assoc (dissoc machine :change) :change change))
 
 (defn make-change-machine [machine item-price change]
     (let [
       tend (sum-coins (:tendered machine))
 		change (make-change item-price (:merk tend) (:plack tend) (:bawbee tend) (:bodle tend))]
       (cond (nil? change) machine)
-        true (assoc (dissoc (subtract-change machine change) :change ) :change change )))
+        true (assoc (dissoc (subtract-change machine item-price change) :change ) :change change )))
 
 (defn remove-from-stock [machine item]
+  "TODO: This requires clever use of update-in"
 	machine)
 
 (defn deliver-item [machine item change]
@@ -117,9 +130,11 @@
 
 
 (defn get-item [machine item]
+  (print "get-item: Started")
 	(let [item-price (item item-prices)
 		tend (sum-coins (:tendered machine))
 		change (make-change item-price (:merk tend) (:plack tend) (:bawbee tend) (:bodle tend))]
+    (print (list "get-item:" item-price tend change))
 	(cond (<= 0 (item (:stock machine))) (coin-return machine)
 		(<= (coins-value (:tendered machine)) item-price) (coin-return machine)
 		(empty? change) (coin-return)

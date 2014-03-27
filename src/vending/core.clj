@@ -1,4 +1,5 @@
-(ns vending.core)
+(ns vending.core
+  (:use clojure.set))
 
 
 
@@ -55,7 +56,7 @@
 
 (defn sum-coins
 	"takes a list in the form (:merk :merk :bawbee :plack :bodle) and returns
-  a map {:merk 2 :plack 1 :bawbee 1 :bodle 1}. Optional second argument: an
+  a wallet {:merk 2 :plack 1 :bawbee 1 :bodle 1}. Optional second argument: an
   existing map in that general form."
 	([coins]
 		(sum-coins coins {}))
@@ -83,7 +84,7 @@
 (defn subtract-merk [list]
 	(subtract-denomination list 4))
 
-(defn in-make-change [amount merk plack bawbee bodle]
+(defn- in-make-change [amount merk plack bawbee bodle]
   "Given this amount of change to make, and this number each of merks, placks, bawbees
   and bodles, return a tuple (merk plack bodle bawbee) which indicates the number remaining
 	after making change, or nil if not possible"
@@ -117,7 +118,7 @@
 
 (defn make-change [amount coins]
   "Given this amount of change to make, and this number each of merks, placks, bawbees
-  and bodles, return a map with keys (:merk :plack :bawbee :bodle) which indicates the
+  and bodles, return a wallet (a map with keys (:merk :plack :bawbee :bodle)) which indicates the
   number of each remaining after making change, or nil if not possible"
   (to-coins
     (let [merk (:merk coins)
@@ -131,10 +132,29 @@
 
 (defn subtract-change [coin-stacks change]
   "Return a copy of these coin-stacks with this change removed"
-  {:merk (- (:merk coin-stacks) (:merk change))
-   :plack (- (:plack coin-stacks) (:plack change))
-   :bawbee (- (:bawbee coin-stacks) (:bawbee change))
-   :bodle (- (:bodle coin-stacks) (:bodle change))})
+  (let [change-map (sum-coins change)]
+    {:merk (- (:merk coin-stacks) (or (:merk change-map) 0))
+     :plack (- (:plack coin-stacks) (or (:plack change-map) 0))
+     :bawbee (- (:bawbee coin-stacks) (or (:bawbee change-map) 0))
+     :bodle (- (:bodle coin-stacks) (or (:bodle change-map) 0))}))
+
+
+(defn in-op-maps [op kys map1 map2 dflt]
+  (cond (empty? kys) {}
+        true
+         (let [ky (first kys)]
+           (assoc (in-op-maps op (rest kys) map1 map2 dflt)
+             ky
+             (apply op (list (or (map1 ky) dflt) (or (map2 ky) dflt)))))))
+
+
+(defn op-maps [op map1 map2 dflt]
+  "return a new map composed by applying this op to the values of
+  the keys of these maps, using this default when no value present"
+  (in-op-maps op (union (keys map1) (keys map2)) map1 map2 dflt))
+
+(defn add-wallets [wallet1 wallet2]
+  (op-maps + wallet1 wallet2 0))
 
 (defn subtract-change-machine [machine change]
   "return a copy of this machine which has this amount of change removed from its coins"
@@ -144,35 +164,49 @@
 (defn make-change-machine [machine change]
   "given this machine and these numbers of coins to remove, return a copy of the machine
   with the coins removed"
-    (let [tend (sum-coins (:tendered machine))]
-        (cond (= change '(0 0 0 0)) machine)
-          true (assoc (dissoc (subtract-change-machine machine change) :change ) :change change )))
+  (cond (empty? change) machine
+    true (assoc (dissoc (subtract-change-machine machine change) :change ) :change change )))
 
 (defn remove-from-stock [machine item]
   "return a copy of this machine with one fewer of this item in stock"
 	(update-in machine [:stock item] dec))
 
-(defn deliver-item [machine item change]
-	(make-change-machine
+(defn deliver-item [machine item]
+  "Remove an item matching this item from stock and add it to the output hopper"
 		(remove-from-stock
 			(assoc (dissoc machine :output) :output (cons item (:output machine)))
-			item)
-		change))
+			item))
 
+(defn store-coins-machine [machine]
+  ;; add the tendered coins to the coin stacks
+  (let [wallet (sum-coins (:tendered machine))]
+    (assoc
+      (dissoc (dissoc machine :tendered) :coins)
+      :coins (add-wallets wallet (:coins machine)))))
 
 (defn get-item [machine item]
 	(let [item-price (item item-prices)
 		coins (:coins machine)
     tendered (coins-value (:tendered machine))
 		change (make-change (- tendered item-price) coins)]
-    (print (list "hello" item-price coins tendered change ))
+;;    (print (list "hello" item-price coins tendered change ))
     (cond (> 0 (item (:stock machine))) (message-machine (coin-return machine) (str "Sorry, " item " not in stock"))
       (<= tendered item-price) (message-machine machine "Please insert more money")
       (= change '(0 0 0 0)) (message-machine (coin-return machine) "Sorry, I don't have enough change.")
-      true (message-machine (deliver-item machine item change) (str "Enjoy your " item)))))
+      true (message-machine
+            (store-coins-machine
+              (make-change-machine
+               (deliver-item machine item) change))
+            (str "Enjoy your " item)))))
 
 (defn get-caramel-wafer [machine]
 	(get-item machine :caramel-wafer))
+
+(defn get-teacake [machine]
+	(get-item machine :teacake))
+
+(defn get-snowball [machine]
+	(get-item machine :snowball))
 
 ;; (get-caramel-wafer (add-coin (add-coin (make-default-machine) :merk) :merk))
 

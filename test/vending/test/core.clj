@@ -9,7 +9,7 @@
   (some #(= elm %) seq))
 
 
-(deftest test-add-coin
+(deftest test-vending
   (testing
     "Test adding coins to machine"
     (let [machine (make-default-machine)
@@ -47,22 +47,34 @@
 
   (testing
     "making appropriate change"
-    (let [no-change (make-change 0 5 5 5 5)
-          ten-change (make-change 10 5 5 5 5)
-          all-change (make-change 140 5 5 5 5)]
-      (is (= no-change '(0 0 0 0)) "one hundred units of change should be satisfied with one merk")
-      (is (= all-change '(1 1 1 1)) "140 units of change should be satisfied with one coin of each denomination")
-      (is (or (= ten-change '(0 0 1 0)) (= ten-change '(0 0 0 2))) "ten change could be satisfied with one bawbee or two bodles")))
+    (let [wallet {:merk 5 :plack 5 :bawbee 5 :bodle 5}
+          no-change (make-change 0 wallet)
+          merk-change (make-change 100 wallet)
+          ten-change (make-change 10 wallet)
+          all-change (make-change 140 wallet)]
+      (is (empty? no-change) "no change implies an empty coin list")
+      (is (= merk-change '(:merk)) "100 units of change should be satisfied with one mark")
+      (is (= (set all-change) (set (list :merk :plack :bawbee :bodle))) "140 units of change should be satisfied with one coin of each denomination")
+      (is (or (= (set ten-change) (set (list :bawbee))) (= (set ten-change) (set (list :bodle :bodle)))) "ten change could be satisfied with one bawbee or two bodles")))
 
   (testing
     "removing change from machine"
     (let [machine (make-default-machine)
-          changed (make-change-machine machine '(1 1 1 1))
-          emptied (make-change-machine machine '(1 4 4 4))]
+          changed (make-change-machine machine '(:merk :plack :bawbee :bodle))
+          emptied (make-change-machine machine '(:merk :plack :bawbee :bodle :plack :bawbee :bodle :plack :bawbee :bodle :plack :bawbee :bodle))]
       (is (= (vals (:coins changed)) '(0 3 3 3)) "each coin slot should be decremented by one")
       (is (= (vals (:coins emptied)) '(0 0 0 0)) "each coin slot should be empty (contain zero)")
       ))
+
+    (testing
+      "full machine cycle"
+      (let [machine (get-caramel-wafer (add-coin (make-default-machine) :merk))]
+        (is (= (:message machine) "Enjoy your :caramel-wafer"))
+        (is (= (set (:change machine)) #{:plack :bawbee}))
+        (is (= (:merk (:coins machine)) 2))
+        (is (= (:output machine) '(:caramel-wafer)))))
   )
 
   (make-change-machine (make-default-machine) '( 1 1 1 1))
 
+  (set '(:a :b :c))

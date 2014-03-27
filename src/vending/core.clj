@@ -21,8 +21,9 @@
 	(coin-values coin))
 
 (defn coins-value [coins]
-  "Sum the value of these coins."
-	(apply + (map coin-value coins)))
+  "Sum the value of this list of coins."
+  (cond coins	(apply + (map coin-value coins))
+        true 0))
 
 
 (defn message-machine [machine message]
@@ -97,21 +98,43 @@
 		(and (>= amount (:bodle coin-values)) (> bodle 0))
 			(in-make-change (- amount (:bodle coin-values)) merk plack bawbee (- bodle 1))))
 
-(defn make-change [amount merk plack bawbee bodle]
+(defn n-of [elt n]
+  "return a list of n instances of elt"
+  (cond (<= n 0) nil
+        true (cons elt (n-of elt (dec n)))))
+
+(defn to-coins [quadtuple]
+  "Given a list in the form (merks placks bawbies bodles), return a
+  flat list of coin symbols"
+  (remove nil?
+   (flatten
+     (list
+      (n-of :merk (nth quadtuple 0))
+      (n-of :plack (nth quadtuple 1))
+      (n-of :bawbee (nth quadtuple 2))
+      (n-of :bodle (nth quadtuple 3))
+      ))))
+
+(defn make-change [amount coins]
   "Given this amount of change to make, and this number each of merks, placks, bawbees
-  and bodles, return a tuple (merk plack bodle bawbee) which indicates the number remaining
-	after making change, or nil if not possible"
-	(map #(- %1 %2) (map #(or % 0) (list merk plack bawbee bodle))
-		(apply in-make-change (map #(or % 0) (list amount merk plack bawbee bodle)))
-		))
+  and bodles, return a map with keys (:merk :plack :bawbee :bodle) which indicates the
+  number of each remaining after making change, or nil if not possible"
+  (to-coins
+    (let [merk (:merk coins)
+          plack (:plack coins)
+          bawbee (:bawbee coins)
+          bodle (:bodle coins)]
+      (map #(- %1 %2) (map #(or % 0) (list merk plack bawbee bodle))
+        (apply in-make-change (map #(or % 0) (list amount merk plack bawbee bodle)))
+        ))))
 
 
 (defn subtract-change [coin-stacks change]
   "Return a copy of these coin-stacks with this change removed"
-  {:merk (- (:merk coin-stacks) (nth change 0))
-   :plack (- (:plack coin-stacks) (nth change 1))
-   :bawbee (- (:bawbee coin-stacks) (nth change 2))
-   :bodle (- (:bodle coin-stacks) (nth change 3))})
+  {:merk (- (:merk coin-stacks) (:merk change))
+   :plack (- (:plack coin-stacks) (:plack change))
+   :bawbee (- (:bawbee coin-stacks) (:bawbee change))
+   :bodle (- (:bodle coin-stacks) (:bodle change))})
 
 (defn subtract-change-machine [machine change]
   "return a copy of this machine which has this amount of change removed from its coins"
@@ -127,14 +150,13 @@
 
 (defn remove-from-stock [machine item]
   "return a copy of this machine with one fewer of this item in stock"
-	(update-in machine [:items item] dec))
+	(update-in machine [:stock item] dec))
 
 (defn deliver-item [machine item change]
 	(make-change-machine
 		(remove-from-stock
 			(assoc (dissoc machine :output) :output (cons item (:output machine)))
 			item)
-    (item item-prices)
 		change))
 
 
@@ -142,9 +164,9 @@
 	(let [item-price (item item-prices)
 		coins (:coins machine)
     tendered (coins-value (:tendered machine))
-		change (make-change (- tendered item-price) (:merk coins) (:plack coins) (:bawbee coins) (:bodle coins))]
-    (print change)
-    (cond (>= 0 (item (:stock machine))) (message-machine (coin-return machine) (str "Sorry, " item " not in stock"))
+		change (make-change (- tendered item-price) coins)]
+    (print (list "hello" item-price coins tendered change ))
+    (cond (> 0 (item (:stock machine))) (message-machine (coin-return machine) (str "Sorry, " item " not in stock"))
       (<= tendered item-price) (message-machine machine "Please insert more money")
       (= change '(0 0 0 0)) (message-machine (coin-return machine) "Sorry, I don't have enough change.")
       true (message-machine (deliver-item machine item change) (str "Enjoy your " item)))))

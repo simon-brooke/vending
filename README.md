@@ -10,25 +10,25 @@ The state of the machine is represented by a structure which is passed around be
 
 So you can make a machine with make-default-machine:
 
-  vending.repl=> (make-default-machine)
-  {:tendered nil, :output nil, :coins {:plack 4, :merk 1, :bawbee 4, :bodle 4}, :change nil, :stock {:teacake 5, :caramel-wafer 5, :snowball 5}, :message ""}
+    vending.repl=> (make-default-machine)
+    {:tendered nil, :output nil, :coins {:plack 4, :merk 1, :bawbee 4, :bodle 4}, :change nil, :stock {:teacake 5, :caramel-wafer 5, :snowball 5}, :message ""}
 
 You can add coins to it with add-coin; as this is a Scots machine the coins you can add are merks, placks, bawbees and bodles.
 
-  vending.repl=> (add-coin (add-coin *1 :merk) :bawbee)
-  {:message "Added a :bawbee", :tendered (:bawbee :merk), :output nil, :coins {:plack 4, :merk 1, :bawbee 4, :bodle 4}, :change nil, :stock {:teacake 5, :caramel-wafer 5, :snowball 5}}
+    vending.repl=> (add-coin (add-coin *1 :merk) :bawbee)
+    {:message "Added a :bawbee", :tendered (:bawbee :merk), :output nil, :coins {:plack 4, :merk 1, :bawbee 4, :bodle 4}, :change nil, :stock {:teacake 5, :caramel-wafer 5, :snowball 5}}
 
 The machine serves good Scottish super-foods: caramel wafers, teacakes and snowballs. To get a teacake, try
 
-  vending.repl=> (get-teacake *1)
-  {:message "Enjoy your :teacake", :coins {:merk 2, :plack 4, :bawbee 4, :bodle 4}, :change (:bawbee), :output (:teacake), :stock {:teacake 4, :caramel-wafer 5, :snowball 5}}
+    vending.repl=> (get-teacake *1)
+    {:message "Enjoy your :teacake", :coins {:merk 2, :plack 4, :bawbee 4, :bodle 4}, :change (:bawbee), :output (:teacake), :stock {:teacake 4, :caramel-wafer 5, :snowball 5}}
 
 There's very little error checking; if you try to add a dollar, I've no idea what will happen but it probably won't be good.
 
 Finally if you add coins and decide you want them back, you can use coin-return:
 
-  vending.repl=> (coin-return (add-coin (add-coin (make-default-machine) :merk) :plack))
-  {:message "Coins returned", :output nil, :coins {:plack 4, :merk 1, :bawbee 4, :bodle 4}, :change (:plack :merk), :stock {:teacake 5, :caramel-wafer 5, :snowball 5}}
+    vending.repl=> (coin-return (add-coin (add-coin (make-default-machine) :merk) :plack))
+    {:message "Coins returned", :output nil, :coins {:plack 4, :merk 1, :bawbee 4, :bodle 4}, :change (:plack :merk), :stock {:teacake 5, :caramel-wafer 5, :snowball 5}}
 
 ## Possible future development
 

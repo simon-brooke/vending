@@ -1,9 +1,15 @@
 (ns vending.core
   (:use clojure.set))
 
+(defn member?
+  "true if seq contains elm"
+  [seq elm]
+  (some #(= elm %) seq))
 
 
-(defn make-default-machine [] { :stock {:caramel-wafer 5 :teacake 5 :snowball 5}
+(defn make-default-machine
+  "Initialise a machine in a known state"
+  [] { :stock {:caramel-wafer 5 :teacake 5 :snowball 5}
 	:coins {:merk 1 :plack 4 :bawbee 4 :bodle 4}
 	:tendered nil
 	:message ""
@@ -39,7 +45,10 @@
 
 (defn add-coin [machine coin]
   "Add this coin to this machine."
-	(message-machine (assoc (dissoc machine :tendered) :tendered (cons coin (:tendered machine))) (str "Added a " coin)))
+  (if
+   (member? (keys coin-values) coin)
+	  (message-machine (assoc (dissoc machine :tendered) :tendered (cons coin (:tendered machine))) (str "Added a " coin))
+    (message-machine (assoc (dissoc machine :change) :change (cons coin (:change machine))) (str "Sorry, this machine doesn't accept " coin "s"))))
 
 (defn add-coins [machine coins]
   "Add these coins to this machine"

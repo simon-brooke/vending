@@ -3,12 +3,6 @@
         ring.mock.request
         vending.core))
 
-(defn member?
-  "true if seq contains elm"
-  [seq elm]
-  (some #(= elm %) seq))
-
-
 (deftest test-vending
   (testing
     "Test adding coins to machine"

@@ -10,13 +10,15 @@
 	:change nil
 	:output nil} )
 
-(def coin-values {:merk 100 :plack 25 :bawbee 10 :bodle 5})
+;; Laterly a bodle was worth either one sixth or one eighth of an English penny, but apparently
+;; it was two pence Scots. Other values are more certain; a merk was 13 shillings and sixpence.
+(def coin-values {:merk 160 :bawbee 6 :plack 4 :bodle 2})
 
 (keys coin-values)
 
 (.indexOf (keys coin-values) :bodle)
 
-(def item-prices {:caramel-wafer 65 :teacake 100 :snowball 150})
+(def item-prices {:caramel-wafer 10 :teacake 16 :snowball 22})
 
 (defn coin-value [coin]
 	(coin-values coin))

@@ -41,21 +41,21 @@
     "summing coins"
     (let [coins1 (sum-coins (list :merk :plack :bawbee :bodle))
           coins2 (sum-coins (list :merk :plack :bawbee :bodle :merk :plack :bawbee :bodle))]
-      (= (:merk coins1 1) "after adding one merk, one merk should be present")
-      (= (:merk coins2 2) "after adding two merks, two merks should be present")
+      (is (= (:merk coins1) 1) "after adding one merk, one merk should be present")
+      (is (= (:merk coins2) 2) "after adding two merks, two merks should be present")
       ))
 
   (testing
     "making appropriate change"
-    (let [wallet {:merk 5 :plack 5 :bawbee 5 :bodle 5}
+    (let [wallet {:merk 1 :plack 1 :bawbee 1 :bodle 1}
           no-change (make-change 0 wallet)
-          merk-change (make-change 100 wallet)
-          ten-change (make-change 10 wallet)
-          all-change (make-change 140 wallet)]
+          merk-change (make-change (coin-values :merk) wallet)
+          ten-change (make-change (+ (coin-values :plack) (coin-values :bawbee)) wallet)
+          all-change (make-change (reduce + (map #(coin-values %) (keys coin-values))) wallet)]
       (is (empty? no-change) "no change implies an empty coin list")
-      (is (= merk-change '(:merk)) "100 units of change should be satisfied with one mark")
-      (is (= (set all-change) (set (list :merk :plack :bawbee :bodle))) "140 units of change should be satisfied with one coin of each denomination")
-      (is (or (= (set ten-change) (set (list :bawbee))) (= (set ten-change) (set (list :bodle :bodle)))) "ten change could be satisfied with one bawbee or two bodles")))
+      (is (= merk-change '(:merk)) "140 units of change should be satisfied with one mark")
+      (is (= (set all-change) (set (list :merk :plack :bawbee :bodle))) "172 units of change should be satisfied with one coin of each denomination")
+      (is (= (set ten-change) (set (list :plack :bawbee))) "ten change could be satisfied with one bawbee or two bodles")))
 
   (testing
     "removing change from machine"
@@ -68,13 +68,10 @@
 
     (testing
       "full machine cycle"
-      (let [machine (get-caramel-wafer (add-coin (make-default-machine) :merk))]
+      (let [machine (get-caramel-wafer (add-coin (add-coin (make-default-machine) :bawbee) :bawbee))]
         (is (= (:message machine) "Enjoy your :caramel-wafer"))
-        (is (= (set (:change machine)) #{:plack :bawbee}))
-        (is (= (:merk (:coins machine)) 2))
+        (is (= (set (:change machine)) #{:bodle}))
+        (is (= (:bawbee (:coins machine)) 6))
         (is (= (:output machine) '(:caramel-wafer)))))
   )
 
-  (make-change-machine (make-default-machine) '( 1 1 1 1))
-
-  (set '(:a :b :c))

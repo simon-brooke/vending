@@ -34,6 +34,10 @@ Finally if you add coins and decide you want them back, you can use coin-return:
 
 My panned next phase for this is to make it drive an interactive web page, first entirely server-side, and then, if that works, client-side.
 
+Update: the wep page now roughly works (but isn't yet pretty). To play with it, use:
+
+    lein ring server
+
 ## License
 
 Copyright © 2014 Simon Brooke, Ali King and others

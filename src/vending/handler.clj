@@ -1,6 +1,7 @@
 (ns vending.handler
   (:require [compojure.core :refer [defroutes]]
             [vending.routes.home :refer [home-routes]]
+            [vending.routes.json :refer [json-routes]]
             [vending.middleware :as middleware]
             [noir.util.middleware :refer [app-handler]]
             [compojure.route :as route]
@@ -44,7 +45,7 @@
 
 (def app (app-handler
            ;; add your application routes here
-           [home-routes app-routes]
+           [home-routes json-routes app-routes]
            ;; add custom middleware here
            :middleware [middleware/template-error-page
                         middleware/log-request]
